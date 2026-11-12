@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Many Futures</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a planning bench — inputs in a left column, the projection and its readout on the right; stacks on phones */
+:root{
+  --bg:#f3f5f4; --surface:#fbfcfb; --ink:#13201c; --ink-2:#47554f; --ink-3:#77847e;
+  --line:#d9e0dc; --grid:#e8ecea; --accent:#0f6b5c; --accent-ink:#ffffff; --accent-soft:#dcefe9;
+  --warn:#9a5b00; --warn-soft:#fbefdc; --bad:#b3261e;
+  --s1:#0f6b5c; --s2:#c4572b; --s3:#3a6fc4; --s4:#b08900;
+  --display:"Schibsted Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --sans:"Schibsted Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1513; --surface:#161e1b; --ink:#e7eeea; --ink-2:#b5c2bc; --ink-3:#83918a;
+  --line:#2a3531; --grid:#212a27; --accent:#5cc4ae; --accent-ink:#06201a; --accent-soft:#183a33;
+  --warn:#e6ad55; --warn-soft:#3a2c14; --bad:#f08a80;
+  --s1:#5cc4ae; --s2:#e88457; --s3:#7ea8ee; --s4:#d9b440; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1513; --surface:#161e1b; --ink:#e7eeea; --ink-2:#b5c2bc; --ink-3:#83918a;
+  --line:#2a3531; --grid:#212a27; --accent:#5cc4ae; --accent-ink:#06201a; --accent-soft:#183a33;
+  --warn:#e6ad55; --warn-soft:#3a2c14; --bad:#f08a80;
+  --s1:#5cc4ae; --s2:#e88457; --s3:#7ea8ee; --s4:#d9b440; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 56px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:22px}
+header{display:grid;gap:6px}
+header h1{font-family:var(--display);font-size:clamp(28px,4vw,38px);font-weight:700;margin:0;letter-spacing:-.025em;text-wrap:balance}
+header p{margin:0;color:var(--ink-2);max-width:66ch}
+.bar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;font-size:13px;color:var(--ink-3)}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;background:var(--accent-soft);color:var(--ink);font-size:12.5px;font-weight:500}
+.btn{font:inherit;font-size:13px;padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.btn:hover{border-color:var(--ink-3)}
+.btn.ghost{background:transparent}
+.btn.small{padding:4px 9px;font-size:12.5px}
+.btn:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.bench{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:900px){.bench{grid-template-columns:minmax(0,1fr)}}
+.inputs{display:grid;gap:14px;min-width:0}
+.out{display:grid;gap:16px;min-width:0}
+@media (min-width:901px){.out{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px)}}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0}
+.panel h2{font-family:var(--display);font-size:15px;font-weight:600;margin:0 0 12px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.panel h2 small{font-weight:400;font-size:12.5px;color:var(--ink-3)}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.ctl{display:grid;gap:5px;min-width:0;align-content:start}
+.lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3)}
+.hint{font-size:12.5px;color:var(--ink-3)}
+.field{display:flex;align-items:center;border:1px solid var(--line);border-radius:8px;background:var(--bg);padding:0 9px;min-width:0}
+.field span{color:var(--ink-3);font-family:var(--mono);font-size:13px}
+.field input{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font:500 14px var(--mono);padding:7px 5px;font-variant-numeric:tabular-nums}
+.field input:focus{outline:none}
+.field:focus-within{border-color:var(--accent)}
+input.text,select{font:inherit;font-size:14px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);padding:7px 9px;min-width:0;width:100%}
+.seg{display:flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--bg)}
+.seg button{flex:1 1 auto;font:inherit;font-size:13px;padding:6px 9px;border:0;background:transparent;color:var(--ink-2);cursor:pointer;border-right:1px solid var(--line);white-space:nowrap}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--ink);font-weight:600}
+.row{display:flex;align-items:center;gap:10px}
+input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
+
+.acct{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1.1fr) auto;gap:6px;align-items:center}
+.acct-list{display:grid;gap:8px}
+.x{font:inherit;width:28px;height:28px;border-radius:7px;border:1px solid transparent;background:transparent;color:var(--ink-3);cursor:pointer;font-size:16px;line-height:1}
+.x:hover{border-color:var(--line);color:var(--bad)}
+.total{display:flex;justify-content:space-between;font-size:13px;color:var(--ink-2);border-top:1px solid var(--grid);padding-top:8px;margin-top:4px}
+.total b{font-family:var(--mono);font-weight:500;color:var(--ink)}
+.flag{color:var(--warn)}
+.note-warn{background:var(--warn-soft);color:var(--ink);border-radius:8px;padding:8px 10px;font-size:12.5px}
+
+.paths{display:grid;gap:8px}
+.path{display:grid;grid-template-columns:14px minmax(0,1fr) minmax(0,130px);gap:8px;align-items:center}
+.dot{width:12px;height:12px;border-radius:50%}
+
+.chart-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px 16px;align-items:center;margin-bottom:8px}
+.chart-head h2{margin:0}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;color:var(--ink-2)}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.controls-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:12px}
+.chart-box{position:relative}
+svg{display:block;width:100%;height:auto;overflow:visible}
+.tick{font:11px var(--mono);fill:var(--ink-3)}
+.end{font:600 12px var(--sans);fill:var(--ink)}
+.end-v{font:11px var(--mono);fill:var(--ink-2)}
+.tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12.5px;box-shadow:0 6px 20px rgb(0 0 0 / .14);min-width:180px;z-index:2}
+.tip b{display:block;font-weight:600;margin-bottom:4px}
+.tip .r{display:flex;justify-content:space-between;gap:14px;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.tip .r span:first-child{font-family:var(--sans);color:var(--ink-2)}
+.tip i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+
+.read-title{font-size:13.5px;color:var(--ink-2);margin:0 0 10px}
+.read-title b{color:var(--ink)}
+.read{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px 18px}
+.stat{display:grid;gap:1px;align-content:start}
+.stat .k{font-size:12.5px;color:var(--ink-3)}
+.stat .v{font:500 23px var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.stat .s{font-size:12.5px;color:var(--ink-2)}
+.stat .v.bad{color:var(--bad)}
+
+details summary{cursor:pointer;font-weight:600;font-size:14px}
+.tbl{overflow-x:auto;margin-top:12px}
+table{border-collapse:collapse;width:100%;font-size:13px;min-width:460px}
+th,td{padding:6px 10px;text-align:right;border-bottom:1px solid var(--grid);font-variant-numeric:tabular-nums}
+th{font-weight:600;color:var(--ink-2);font-size:12px}
+td{font-family:var(--mono)}
+th:first-child,td:first-child{text-align:left;font-family:var(--sans)}
+.notes{columns:2 300px;column-gap:28px;font-size:13px;color:var(--ink-2);margin:10px 0 0;padding-left:18px}
+.notes li{break-inside:avoid;margin-bottom:6px}
+.privacy{font-size:12.5px;color:var(--ink-3)}
+@media (max-width:460px){.grid3{grid-template-columns:repeat(2,minmax(0,1fr))}.acct{grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto}.acct .aname{grid-column:1/-1}}
+@media (prefers-reduced-motion:no-preference){.line{transition:opacity .2s}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Many Futures</h1>
+    <p>See where your net worth could go from today to old age, in today's dollars. Enter your accounts and home, sketch up to four career paths, and compare them across good and bad markets.</p>
+    <div class="bar">
+      <span class="pill" id="status">Showing example numbers</span>
+      <span class="privacy">Your numbers stay in this browser. Nothing is sent anywhere.</span>
+      <button class="btn small ghost" type="button" id="reset">Reset to example</button>
+      <button class="btn small ghost" type="button" id="clear">Start blank</button>
+    </div>
+  </header>
+
+  <div class="bench">
+    <div class="inputs">
+
+      <section class="panel" aria-labelledby="h-you">
+        <h2 id="h-you">You</h2>
+        <div class="grid3">
+          <div class="ctl"><label class="lbl" for="age">Age now</label><div class="field"><input id="age" inputmode="numeric"></div></div>
+          <div class="ctl"><label class="lbl" for="retire">Retire at</label><div class="field"><input id="retire" inputmode="numeric"></div></div>
+          <div class="ctl"><label class="lbl" for="end">Plan to age</label><div class="field"><input id="end" inputmode="numeric"></div></div>
+        </div>
+        <div class="grid2" style="margin-top:12px">
+          <div class="ctl"><label class="lbl" for="ss">Social Security / yr</label><div class="field"><span>$</span><input id="ss" inputmode="numeric"></div></div>
+          <div class="ctl"><label class="lbl" for="ssAge">Starting at age</label><div class="field"><input id="ssAge" inputmode="numeric"></div></div>
+        </div>
+        <p class="hint" style="margin:8px 0 0">Your own Social Security estimate is at ssa.gov/myaccount.</p>
+      </section>
+
+      <section class="panel" aria-labelledby="h-acct">
+        <h2 id="h-acct">Savings and investments <small>today's balances</small></h2>
+        <div class="acct-list" id="accts"></div>
+        <div class="row" style="margin-top:10px;justify-content:space-between">
+          <button class="btn small" type="button" id="add-acct">Add account</button>
+        </div>
+        <div class="total"><span>Total invested and saved</span><b id="acct-total"></b></div>
+        <p class="note-warn" id="conc" hidden></p>
+      </section>
+
+      <section class="panel" aria-labelledby="h-home">
+        <h2 id="h-home">Home</h2>
+        <div class="seg" role="group" aria-label="Housing" id="own">
+          <button type="button" data-v="1">I own</button>
+          <button type="button" data-v="0">I rent</button>
+        </div>
+        <div id="own-fields" class="grid2" style="margin-top:12px">
+          <div class="ctl"><label class="lbl" for="home">Home value</label><div class="field"><span>$</span><input id="home" inputmode="numeric"></div></div>
+          <div class="ctl"><label class="lbl" for="mort">Mortgage owed</label><div class="field"><span>$</span><input id="mort" inputmode="numeric"></div></div>
+          <div class="ctl"><label class="lbl" for="rate">Interest rate</label><div class="field"><input id="rate" inputmode="decimal"><span>%</span></div></div>
+          <div class="ctl"><label class="lbl" for="pi">Principal + interest / mo</label><div class="field"><span>$</span><input id="pi" inputmode="numeric"></div></div>
+          <div class="ctl" style="grid-column:1/-1"><label class="lbl" for="escrow">Property tax + insurance / yr</label><div class="field"><span>$</span><input id="escrow" inputmode="numeric"></div><span class="hint">These continue after the mortgage is paid off.</span></div>
+        </div>
+        <p class="hint" id="rent-hint" style="margin:10px 0 0" hidden>Include your rent in yearly spending below.</p>
+      </section>
+
+      <section class="panel" aria-labelledby="h-paths">
+        <h2 id="h-paths">Career paths <small>take-home pay / yr</small></h2>
+        <div class="paths" id="paths"></div>
+        <div class="grid2" style="margin-top:12px">
+          <div class="ctl">
+            <span class="lbl" id="l-bridge">Before a path starts</span>
+            <div class="seg" role="group" aria-labelledby="l-bridge" id="bridgeYears">
+              <button type="button" data-v="0">Now</button>
+              <button type="button" data-v="1">1 yr</button>
+              <button type="button" data-v="2">2 yrs</button>
+            </div>
+          </div>
+          <div class="ctl" id="bridge-inc-ctl"><label class="lbl" for="bridgeInc">Income meanwhile / yr</label><div class="field"><span>$</span><input id="bridgeInc" inputmode="numeric"></div></div>
+        </div>
+        <p class="hint" style="margin:8px 0 0">Use the gap for a job search, a sabbatical or school.</p>
+      </section>
+
+      <section class="panel" aria-labelledby="h-side">
+        <h2 id="h-side">Extra income</h2>
+        <div class="grid2">
+          <div class="ctl"><label class="lbl" for="side">Per month</label><div class="field"><span>$</span><input id="side" inputmode="numeric"></div><span class="hint">Renting a room, a side business, a pension.</span></div>
+          <div class="ctl">
+            <span class="lbl" id="l-sideYears">For</span>
+            <div class="seg" role="group" aria-labelledby="l-sideYears" id="sideYears">
+              <button type="button" data-v="3">3 yrs</button>
+              <button type="button" data-v="10">10 yrs</button>
+              <button type="button" data-v="999">Until retiring</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-spend">
+        <h2 id="h-spend">Spending and safety</h2>
+        <div class="ctl">
+          <label class="lbl" for="spend">Yearly spending, not counting the mortgage</label>
+          <div class="row"><input type="range" id="spend-r" min="20000" max="200000" step="1000" aria-label="Yearly spending slider"><div class="field" style="width:120px"><span>$</span><input id="spend" inputmode="numeric"></div></div>
+          <span class="hint">Food, utilities, upkeep, travel, health insurance, rent if you rent.</span>
+        </div>
+        <div class="grid2" style="margin-top:12px">
+          <div class="ctl">
+            <span class="lbl" id="l-mix">Stocks / bonds</span>
+            <div class="seg" role="group" aria-labelledby="l-mix" id="mix">
+              <button type="button" data-v="90">90/10</button>
+              <button type="button" data-v="70">70/30</button>
+              <button type="button" data-v="50">50/50</button>
+            </div>
+          </div>
+          <div class="ctl"><label class="lbl" for="buffer">Cash safety buffer</label><div class="field"><span>$</span><input id="buffer" inputmode="numeric"></div></div>
+        </div>
+        <p class="hint" style="margin:8px 0 0">The buffer is set aside next year, earns nothing after inflation, and is only spent if investments run out.</p>
+      </section>
+    </div>
+
+    <div class="out">
+      <section class="panel" aria-label="Projection">
+        <div class="controls-row">
+          <div class="ctl">
+            <span class="lbl" id="l-compare">Compare</span>
+            <div class="seg" role="group" aria-labelledby="l-compare" id="compare">
+              <button type="button" data-v="paths">Career paths</button>
+              <button type="button" data-v="markets">Markets</button>
+            </div>
+          </div>
+          <div class="ctl" id="pick-wrap">
+            <span class="lbl" id="l-pick">Market</span>
+            <div class="seg" role="group" aria-labelledby="l-pick" id="pick"></div>
+          </div>
+        </div>
+        <div class="chart-head">
+          <h2 id="chart-title">Net worth</h2>
+          <div class="legend" id="legend"></div>
+        </div>
+        <div class="chart-box" id="chart-box">
+          <svg id="chart" viewBox="0 0 760 380" role="img" aria-labelledby="chart-title"></svg>
+          <div class="tip" id="tip" hidden></div>
+        </div>
+        <p class="hint" id="chart-hint" style="margin:6px 0 0"></p>
+      </section>
+
+      <section class="panel" aria-label="Highlighted future">
+        <p class="read-title" id="read-title"></p>
+        <div class="read" id="read"></div>
+      </section>
+
+      <section class="panel">
+        <details>
+          <summary>Year-by-year table</summary>
+          <div class="tbl"><table id="tbl"></table></div>
+        </details>
+      </section>
+    </div>
+  </div>
+
+  <section class="panel">
+    <span class="lbl">How this is calculated</span>
+    <ul class="notes">
+      <li>Everything is in today's dollars, so returns are after inflation.</li>
+      <li><b>Markets.</b> Strong: stocks 6%, homes 1.5% a year. Base: 4.5% and 1%. Weak: 2.5% and flat. Crash next year: stocks fall 30% and homes 10% next year, then base returns with no rebound.</li>
+      <li><b>Investments</b> earn a blend of the stock return and 1.5% for bonds, by the mix you pick. All accounts are treated as one pool, including retirement accounts, so early-withdrawal penalties aren't modeled.</li>
+      <li><b>Career paths</b> are take-home pay, after tax, until your retirement age. Social Security starts at the age you set.</li>
+      <li><b>Home.</b> The home grows at the market's home rate. The mortgage is paid down from your monthly principal and interest; tax and insurance continue for life. Net worth counts home value minus what you owe. The home is kept, not sold.</li>
+      <li><b>Spending</b> continues at the same level for life. Each year, income minus spending, housing costs and mortgage payments is added to or drawn from investments.</li>
+      <li><b>Retirement income</b> is shown as 4% of investments at retirement plus Social Security.</li>
+      <li>Taxes on investment growth and withdrawals are ignored. A single stock is modeled like the overall market, though it can swing far wider in either direction.</li>
+      <li>These are rough projections for thinking, not financial advice. A fee-only planner can stress-test your real plan.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(function(){
+const KEY="many-futures-v1";
+const EXAMPLE={
+  age:38,retire:65,end:92,ss:26000,ssAge:67,
+  accounts:[
+    {name:"401(k)",type:"retire",bal:185000},
+    {name:"Roth IRA",type:"retire",bal:42000},
+    {name:"Brokerage",type:"taxable",bal:60000},
+    {name:"Employer stock",type:"single",bal:38000},
+    {name:"Savings",type:"cash",bal:22000}
+  ],
+  own:1,home:720000,mort:455000,rate:5.8,pi:2900,escrow:9600,
+  paths:[{name:"Stay the course",inc:110000},{name:"Switch fields",inc:80000},{name:"Self-employed",inc:60000},{name:"Part-time",inc:35000}],
+  bridgeYears:0,bridgeInc:20000,side:0,sideYears:999,
+  spend:58000,mix:70,buffer:30000,
+  compare:"paths",market:"base",path:0
+};
+const BLANK={...EXAMPLE,age:30,retire:65,end:90,ss:0,ssAge:67,accounts:[{name:"Savings",type:"cash",bal:0}],own:0,home:0,mort:0,rate:0,pi:0,escrow:0,
+  paths:[{name:"Path A",inc:0},{name:"Path B",inc:0},{name:"Path C",inc:0},{name:"Path D",inc:0}],side:0,spend:40000,buffer:0};
+const TYPES={cash:"Cash",taxable:"Taxable",retire:"Retirement",single:"Single stock"};
+const MARKETS={strong:{name:"Strong",stock:.06,home:.015},base:{name:"Base",stock:.045,home:.01},weak:{name:"Weak",stock:.025,home:0},crash:{name:"Crash next year",stock:.045,home:.01,crash:true}};
+const ORDER_M=["strong","base","weak","crash"];
+const COLORS=["--s1","--s2","--s3","--s4"];
+const YEAR0=new Date().getFullYear();
+
+let st, edited=false;
+try{const raw=localStorage.getItem(KEY); if(raw){st=JSON.parse(raw); edited=true;}}catch(e){}
+if(!st||!Array.isArray(st.accounts)||!Array.isArray(st.paths)) {st=structuredClone(EXAMPLE); edited=false;}
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const num=v=>{const n=parseFloat(String(v).replace(/[^0-9.\-]/g,""));return isFinite(n)?n:0};
+const fmtIn=v=>Math.round(v).toLocaleString("en-US");
+const fmtM=v=>{const a=Math.abs(v),s=v<0?"−":"";return a>=1e6?s+"$"+(a/1e6).toFixed(2)+"M":s+"$"+Math.round(a/1e3)+"k"};
+const fmtK=v=>"$"+Math.round(v/1000)+"k";
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+let saveT;
+function save(){edited=true;$("status").textContent="Your numbers, saved in this browser";clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}},250)}
+
+/* ---------- model ---------- */
+function ages(){const a=Math.max(15,Math.min(90,Math.round(st.age)||30));const end=Math.max(a+5,Math.min(110,Math.round(st.end)||90));const ret=Math.max(a,Math.min(end,Math.round(st.retire)||65));return{a,end,ret}}
+function project(mk,pi){
+  const m=MARKETS[mk], {a,end,ret}=ages(), path=st.paths[pi]||{inc:0};
+  const mix=st.mix/100, rp=mix*m.stock+(1-mix)*.015;
+  let inv=st.accounts.reduce((s,x)=>s+(+x.bal||0),0);
+  const own=!!st.own;
+  let home=own?st.home:0, bal=own?st.mort:0;
+  const rate=Math.max(0,st.rate)/100, piY=own?st.pi*12:0, escY=own?st.escrow:0;
+  const out=[{year:YEAR0,age:a,home:home-bal,inv,bal}];
+  out.runOut=null; let buf=0;
+  for(let y=1;y<=end-a;y++){
+    const age=a+y, crash=m.crash&&y===1;
+    const r=crash?mix*-.30+(1-mix)*.02:rp;
+    let income=0;
+    if(age<ret) income=y<=st.bridgeYears?st.bridgeInc:path.inc;
+    if(age>=st.ssAge) income+=st.ss;
+    const side=(y<=st.sideYears&&age<ret)?st.side*12:0;
+    let paid=0;
+    if(bal>0){const nb=bal*(1+rate)-piY; paid=nb<0?bal*(1+rate):piY; bal=Math.max(0,nb);}
+    inv=inv*(1+r)+income+side-st.spend-paid-escY;
+    if(y===1){buf=Math.max(0,Math.min(st.buffer,inv));inv-=buf;}
+    if(inv<0){buf+=inv;inv=0;if(buf<0){if(out.runOut===null)out.runOut=age;buf=0}}
+    home*=1+(crash?-.10:m.home);
+    out.push({year:YEAR0+y,age,home:home-bal,inv:inv+buf,bal});
+  }
+  out.forEach(d=>d.nw=d.home+d.inv);
+  out.paidOff=own&&st.mort>0?(out.find(d=>d.bal<=0)||{}).age:null;
+  return out;
+}
+function series(){
+  if(st.compare==="paths") return st.paths.map((p,i)=>({label:p.name||("Path "+(i+1)),color:COLORS[i],data:project(st.market,i),sel:i===st.path}));
+  return ORDER_M.map((k,i)=>({label:MARKETS[k].name,color:COLORS[i],data:project(k,st.path),sel:k===st.market}));
+}
+
+/* ---------- chart ---------- */
+const svg=$("chart"), tip=$("tip"), box=$("chart-box"), NS="http://www.w3.org/2000/svg";
+function el(t,a,p){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);(p||svg).appendChild(e);return e}
+function niceStep(max,n){const raw=max/n,p=Math.pow(10,Math.floor(Math.log10(raw||1)));return [1,2,2.5,5,10].map(m=>m*p).find(s=>s>=raw)}
+function tickLbl(v){return v===0?"$0":v>=1e6?"$"+(+(v/1e6).toFixed(2))+"M":"$"+Math.round(v/1e3)+"k"}
+let S=[];
+function draw(){
+  S=series(); svg.textContent="";
+  const {a,end,ret}=ages();
+  const W=Math.max(320,Math.round(box.clientWidth||760)), narrow=W<560, H=narrow?Math.round(W*.82):380;
+  const M={l:narrow?48:60,r:narrow?96:140,t:16,b:40};
+  svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  const top=Math.max(1e5,...S.flatMap(s=>s.data.map(d=>d.nw)));
+  const step=niceStep(top*1.04,narrow?4:6), max=Math.ceil(top*1.04/step)*step;
+  const x=g=>M.l+(g-a)/(end-a)*(W-M.l-M.r), y=v=>M.t+(1-Math.max(0,v)/max)*(H-M.t-M.b);
+  for(let v=0;v<=max+1;v+=step){
+    el("line",{x1:M.l,x2:W-M.r,y1:y(v),y2:y(v),stroke:v===0?css("--ink-3"):css("--grid"),"stroke-width":1});
+    const t=el("text",{x:M.l-8,y:y(v)+4,"text-anchor":"end",class:"tick"});t.textContent=tickLbl(v);
+  }
+  const span=end-a, every=span>45?(narrow?20:10):span>25?(narrow?10:10):5;
+  const ticks=[a];for(let g=Math.ceil((a+1)/every)*every;g<end;g+=every) if(g-a>=every*.5&&end-g>=every*.5) ticks.push(g); ticks.push(end);
+  ticks.forEach(g=>{
+    const t=el("text",{x:x(g),y:H-M.b+17,"text-anchor":"middle",class:"tick"});t.textContent="Age "+g;
+    const t2=el("text",{x:x(g),y:H-M.b+31,"text-anchor":"middle",class:"tick"});t2.textContent=YEAR0+(g-a);
+  });
+  if(ret>a&&ret<end){
+    el("line",{x1:x(ret),x2:x(ret),y1:M.t,y2:H-M.b,stroke:css("--ink-3"),"stroke-dasharray":"3 4","stroke-width":1});
+    const rt=el("text",{x:x(ret)+5,y:M.t+11,class:"tick"});rt.textContent="Retire "+ret;
+  }
+  [...S].sort((p,q)=>p.sel-q.sel).forEach(s=>{
+    const d=s.data.map((p,i)=>(i?"L":"M")+x(p.age).toFixed(1)+" "+y(p.nw).toFixed(1)).join(" ");
+    el("path",{d,fill:"none",stroke:css(s.color),"stroke-width":s.sel?3:1.75,"stroke-linejoin":"round","stroke-linecap":"round",opacity:s.sel?1:.7,class:"line"});
+    const last=s.data[s.data.length-1];
+    el("circle",{cx:x(last.age),cy:y(last.nw),r:s.sel?4.5:3.5,fill:css(s.color),stroke:css("--surface"),"stroke-width":2});
+  });
+  const ends=S.map(s=>({s,yy:y(s.data[s.data.length-1].nw),v:s.data[s.data.length-1].nw})).sort((p,q)=>p.yy-q.yy);
+  for(let i=1;i<ends.length;i++) if(ends[i].yy-ends[i-1].yy<30) ends[i].yy=ends[i-1].yy+30;
+  const over=ends.length?ends[ends.length-1].yy-(H-M.b-6):0; if(over>0) ends.forEach(e=>e.yy-=over);
+  ends.forEach(e=>{
+    const lab=e.s.label.length>14?e.s.label.slice(0,13)+"…":e.s.label;
+    const t=el("text",{x:W-M.r+12,y:e.yy-1,class:"end"});t.textContent=lab;
+    const v=el("text",{x:W-M.r+12,y:e.yy+13,class:"end-v"});v.textContent=fmtM(e.v);
+  });
+  const g=el("g",{}), vl=el("line",{y1:M.t,y2:H-M.b,stroke:css("--ink-3"),"stroke-width":1,visibility:"hidden"},g);
+  const dots=S.map(s=>el("circle",{r:4.5,fill:css(s.color),stroke:css("--surface"),"stroke-width":2,visibility:"hidden"},g));
+  const hit=el("rect",{x:M.l,y:M.t,width:W-M.l-M.r,height:H-M.t-M.b,fill:"transparent",style:"cursor:crosshair"});
+  function move(ev){
+    const r=svg.getBoundingClientRect(), px=(ev.clientX-r.left)*W/r.width;
+    let age=Math.round(a+(px-M.l)/(W-M.l-M.r)*(end-a)); age=Math.max(a,Math.min(end,age));
+    const i=age-a, X=x(age);
+    vl.setAttribute("x1",X);vl.setAttribute("x2",X);vl.setAttribute("visibility","visible");
+    S.forEach((s,j)=>{dots[j].setAttribute("cx",X);dots[j].setAttribute("cy",y(s.data[i].nw));dots[j].setAttribute("visibility","visible")});
+    tip.innerHTML=`<b>Age ${age} · ${YEAR0+i}</b>`+[...S].sort((p,q)=>q.data[i].nw-p.data[i].nw).map(s=>`<div class="r"><span><i style="background:var(${s.color})"></i>${esc(s.label)}</span><span>${fmtM(s.data[i].nw)}</span></div>`).join("");
+    tip.hidden=false;
+    const bx=box.getBoundingClientRect(), sx=X*r.width/W;
+    const left=sx+16+tip.offsetWidth>bx.width?sx-16-tip.offsetWidth:sx+16;
+    tip.style.left=Math.max(0,left)+"px"; tip.style.top=Math.max(0,(ev.clientY-bx.top)-40)+"px";
+  }
+  function leave(){tip.hidden=true;vl.setAttribute("visibility","hidden");dots.forEach(d=>d.setAttribute("visibility","hidden"))}
+  hit.addEventListener("pointermove",move);hit.addEventListener("pointerdown",move);hit.addEventListener("pointerleave",leave);
+
+  $("legend").innerHTML=S.map(s=>`<span><i style="background:var(${s.color})"></i>${esc(s.label)}</span>`).join("");
+  const pname=esc(st.paths[st.path].name||"Path "+(st.path+1));
+  $("chart-title").textContent=st.compare==="paths"?`Net worth by career path`:`Net worth by market`;
+  $("chart-hint").innerHTML=st.compare==="paths"?`Four paths in a <b>${esc(MARKETS[st.market].name.toLowerCase())}</b> market. Pick a path on the left to highlight it.`:`Four markets for <b>${pname}</b>. Pick a market above to highlight it.`;
+  readout(); table();
+}
+
+function readout(){
+  const {a,end,ret}=ages(), d=project(st.market,st.path), at=g=>d[Math.min(d.length-1,Math.max(0,g-a))];
+  const r=at(ret), ssAtRet=ret>=st.ssAge?st.ss:0, income=r.inv*.04+ssAtRet, last=d[d.length-1];
+  $("read-title").innerHTML=`Highlighted: <b>${esc(st.paths[st.path].name||"Path "+(st.path+1))}</b> in a <b>${esc(MARKETS[st.market].name.toLowerCase())}</b> market`;
+  const mid=Math.round((a+ret)/2/5)*5;
+  const stats=[
+    ["Net worth today",fmtM(d[0].nw),(st.own?"Home equity "+fmtM(d[0].home)+" · ":"")+"invested "+fmtM(d[0].inv)],
+    ["Age "+mid,fmtM(at(mid).nw),"Invested "+fmtM(at(mid).inv)],
+    ["At retirement, "+ret,fmtM(r.nw),"Invested "+fmtM(r.inv)],
+    ["Retirement income",fmtK(income)+"/yr","4% of investments"+(ssAtRet?" + Social Security":ret<st.ssAge?"; Social Security starts at "+st.ssAge:"")],
+  ];
+  if(st.own&&st.mort>0) stats.push(["Mortgage paid off",d.paidOff?"Age "+d.paidOff:"—",d.paidOff?"In "+(YEAR0+d.paidOff-a)+". Then tax and insurance only.":"Not before age "+end]);
+  stats.push(d.runOut!==null
+    ?["Investments run out","Age "+d.runOut,"Spend less, earn more, or work longer to close the gap.",true]
+    :["At age "+end,fmtM(last.nw),"Invested "+fmtM(last.inv)+(st.own?" · home "+fmtM(last.home):"")]);
+  $("read").innerHTML=stats.map(([k,v,s,bad])=>`<div class="stat"><span class="k">${k}</span><span class="v${bad?" bad":""}">${v}</span><span class="s">${s}</span></div>`).join("");
+}
+function table(){
+  const {a,end,ret}=ages(); const set=new Set([a,a+1]); for(let g=Math.ceil(a/5)*5;g<=end;g+=5) set.add(g); set.add(ret); set.add(end);
+  const rows=[...set].filter(g=>g>=a&&g<=end).sort((p,q)=>p-q);
+  $("tbl").innerHTML=`<thead><tr><th>Age (year)</th>${S.map(s=>`<th>${esc(s.label)}</th>`).join("")}</tr></thead><tbody>${rows.map(g=>`<tr><td>${g} (${YEAR0+g-a})</td>${S.map(s=>`<td>${fmtM(s.data[g-a].nw)}</td>`).join("")}</tr>`).join("")}</tbody>`;
+}
+
+/* ---------- inputs ---------- */
+function renderAccounts(){
+  const list=$("accts"); list.innerHTML="";
+  st.accounts.forEach((acc,i)=>{
+    const row=document.createElement("div"); row.className="acct";
+    row.innerHTML=`<input class="text aname" id="an-${i}" aria-label="Account name" value="${esc(acc.name)}">
+      <select id="at-${i}" aria-label="Account type">${Object.entries(TYPES).map(([k,v])=>`<option value="${k}"${k===acc.type?" selected":""}>${v}</option>`).join("")}</select>
+      <div class="field"><span>$</span><input id="ab-${i}" inputmode="numeric" aria-label="Balance" value="${fmtIn(acc.bal)}"></div>
+      <button class="x" type="button" aria-label="Remove ${esc(acc.name||"account")}">×</button>`;
+    row.querySelector(".aname").addEventListener("input",e=>{acc.name=e.target.value;save()});
+    row.querySelector("select").addEventListener("change",e=>{acc.type=e.target.value;acctMeta();save()});
+    row.querySelector(`#ab-${i}`).addEventListener("input",e=>{acc.bal=num(e.target.value);acctMeta();draw();save()});
+    row.querySelector(".x").addEventListener("click",()=>{st.accounts.splice(i,1);renderAccounts();draw();save()});
+    list.appendChild(row);
+  });
+  acctMeta();
+}
+function acctMeta(){
+  const tot=st.accounts.reduce((s,x)=>s+(+x.bal||0),0);
+  $("acct-total").textContent="$"+fmtIn(tot);
+  const big=st.accounts.filter(x=>x.type==="single").sort((p,q)=>q.bal-p.bal)[0];
+  const share=big&&tot>0?big.bal/tot:0;
+  const c=$("conc");
+  if(share>=.2){c.hidden=false;c.textContent=`${big.name||"One stock"} is ${Math.round(share*100)}% of your investments. A single company can swing much more than the market, so real outcomes may land well above or below these lines.`}
+  else c.hidden=true;
+}
+function renderPaths(){
+  const wrap=$("paths"); wrap.innerHTML="";
+  st.paths.forEach((p,i)=>{
+    const row=document.createElement("div"); row.className="path";
+    row.innerHTML=`<span class="dot" style="background:var(${COLORS[i]})"></span>
+      <input class="text" id="pn-${i}" aria-label="Path ${i+1} name" value="${esc(p.name)}">
+      <div class="field"><span>$</span><input id="pi-${i}" inputmode="numeric" aria-label="Path ${i+1} take-home pay per year" value="${fmtIn(p.inc)}"></div>`;
+    row.querySelector(`#pn-${i}`).addEventListener("input",e=>{p.name=e.target.value;renderPick();draw();save()});
+    row.querySelector(`#pi-${i}`).addEventListener("input",e=>{p.inc=num(e.target.value);draw();save()});
+    wrap.appendChild(row);
+  });
+}
+function renderPick(){
+  const g=$("pick");
+  if(st.compare==="paths"){
+    $("l-pick").textContent="Market";
+    g.innerHTML=ORDER_M.map(k=>`<button type="button" data-v="${k}" aria-pressed="${k===st.market}">${MARKETS[k].name}</button>`).join("");
+  }else{
+    $("l-pick").textContent="Career path";
+    g.innerHTML=st.paths.map((p,i)=>`<button type="button" data-v="${i}" aria-pressed="${i===st.path}">${esc(p.name||"Path "+(i+1))}</button>`).join("");
+  }
+}
+$("pick").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  if(st.compare==="paths") st.market=b.dataset.v; else st.path=+b.dataset.v;
+  renderPick();draw();save();});
+$("paths").addEventListener("focusin",e=>{const m=/^p[ni]-(\d)$/.exec(e.target.id);if(m&&st.compare==="paths"&&st.path!==+m[1]){st.path=+m[1];draw();}});
+
+function seg(id,key,parse){
+  const g=$(id);
+  const mark=()=>g.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(parse(b.dataset.v)===st[key])));
+  g.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;st[key]=parse(b.dataset.v);mark();after(key);draw();save()});
+  return mark;
+}
+function after(key){
+  if(key==="own"){$("own-fields").hidden=!st.own;$("rent-hint").hidden=!!st.own}
+  if(key==="bridgeYears"){$("bridge-inc-ctl").style.opacity=st.bridgeYears?1:.45}
+  if(key==="compare"){renderPick()}
+}
+const marks=[seg("own","own",Number),seg("bridgeYears","bridgeYears",Number),seg("sideYears","sideYears",Number),seg("mix","mix",Number),seg("compare","compare",String)];
+
+const MONEY=["ss","home","mort","pi","escrow","bridgeInc","side","buffer"], PLAIN=["age","retire","end","ssAge"];
+MONEY.forEach(id=>$(id).addEventListener("input",e=>{st[id]=num(e.target.value);draw();save()}));
+PLAIN.forEach(id=>$(id).addEventListener("input",e=>{st[id]=num(e.target.value);draw();save()}));
+$("rate").addEventListener("input",e=>{st.rate=num(e.target.value);draw();save()});
+$("spend").addEventListener("input",e=>{st.spend=num(e.target.value);$("spend-r").value=st.spend;draw();save()});
+$("spend-r").addEventListener("input",e=>{st.spend=+e.target.value;$("spend").value=fmtIn(st.spend);draw();save()});
+$("add-acct").addEventListener("click",()=>{st.accounts.push({name:"New account",type:"taxable",bal:0});renderAccounts();save();const n=$("an-"+(st.accounts.length-1));n&&n.select()});
+
+function fill(){
+  MONEY.forEach(id=>$(id).value=fmtIn(st[id]));
+  PLAIN.forEach(id=>$(id).value=st[id]);
+  $("rate").value=st.rate; $("spend").value=fmtIn(st.spend); $("spend-r").value=st.spend;
+  marks.forEach(m=>m()); ["own","bridgeYears","compare"].forEach(after);
+  renderAccounts(); renderPaths(); renderPick();
+  $("status").textContent=edited?"Your numbers, saved in this browser":"Showing example numbers";
+  draw();
+}
+$("reset").addEventListener("click",()=>{st=structuredClone(EXAMPLE);edited=false;try{localStorage.removeItem(KEY)}catch(e){}fill()});
+$("clear").addEventListener("click",()=>{st=structuredClone(BLANK);fill();save()});
+
+const mq=window.matchMedia("(prefers-color-scheme: dark)"); mq.addEventListener&&mq.addEventListener("change",draw);
+new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+let rt;window.addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(draw,120)});
+fill();
+})();
+</script>
+</body>
+</html>
